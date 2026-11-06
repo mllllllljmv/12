@@ -6,105 +6,56 @@
     <title>設備掃描借還系統</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; }
+        #reader { width: 100%; max-width: 450px; margin: 0 auto; background: black; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        #result { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; white-space: pre-wrap; line-height: 1.5; min-height: 60px; }
+        .control-group { margin-bottom: 15px; }
+        select, .mode-btn { padding: 10px; font-size: 16px; border-radius: 5px; width: 100%; max-width: 300px; box-sizing: border-box; }
         
-        #reader { width: 100%; max-width: 450px; margin: 0 auto; background: black; border-radius: 8px; overflow: hidden; }
-        #result { margin-top: 15px; font-size: 16px; font-weight: bold; color: #333; white-space: pre-wrap; line-height: 1.5; min-height: 50px; }
-        
-        .control-group { margin-bottom: 12px; }
-        select, .btn { padding: 10px 15px; font-size: 16px; border-radius: 6px; width: 100%; max-width: 320px; box-sizing: border-box; cursor: pointer; border: 1px solid #ccc; }
-        
-        /* 模式切換按鈕 */
-        #mode-toggle { background-color: #007bff; color: white; border: none; font-weight: bold; }
-        #mode-toggle.return-mode { background-color: #28a745; }
-        
-        /* 頁面切換按鈕 */
-        .nav-btn { background-color: #6c757d; color: white; border: none; font-weight: bold; }
-        
-        /* 頁面區塊控制 */
-        .page-section { display: none; }
-        .page-section.active { display: block; }
-        
-        /* 借出清單表格樣式 */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        .badge-borrowed { background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+        /* 模式切換按鈕樣式 */
+        #mode-toggle {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+        }
+        #mode-toggle.return-mode {
+            background-color: #28a745; /* 歸還模式時顯示綠色 */
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 頁面 1：掃描借還區塊 -->
-        <div id="scan-page" class="page-section active">
-            <h2>📷 設備掃描借還系統</h2>
-            
-            <div class="control-group">
-                <button id="mode-toggle" class="btn" onclick="toggleMode()">目前模式：借用設備</button>
-            </div>
-            
-            <div class="control-group">
-                <button class="btn nav-btn" onclick="switchPage('list-page')">📋 檢視被借出清單</button>
-            </div>
-
-            <div class="control-group">
-                <select id="camera-select"></select>
-            </div>
-            
-            <div id="reader"></div>
-            <div id="result">相機啟動中，請稍候...</div>
-        </div>
-
-        <!-- 頁面 2：被借出清單區塊 -->
-        <div id="list-page" class="page-section">
-            <h2>📋 目前被借出設備清單</h2>
-            
-            <div class="control-group">
-                <button class="btn nav-btn" onclick="switchPage('scan-page')">⬅️ 返回掃描畫面</button>
-            </div>
-
-            <div class="control-group">
-                <button class="btn" style="background-color: #17a2b8; color: white; border: none;" onclick="loadBorrowedList()">🔄 重新整理清單</button>
-            </div>
-
-            <div id="list-status">載入中...</div>
-            <table id="borrowed-table" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>編號</th>
-                        <th>廠牌</th>
-                        <th>名稱</th>
-                        <th>狀態</th>
-                    </tr>
-                </thead>
-                <tbody id="borrowed-list-body"></tbody>
-            </table>
-        </div>
+    <h2>📷 設備掃描借還系統</h2>
+    
+    <!-- 模式切換按鈕 -->
+    <div class="control-group">
+        <button id="mode-toggle" class="mode-btn" onclick="toggleMode()">目前模式：借用設備</button>
     </div>
 
+    <!-- 鏡頭選擇下拉選單 -->
+    <div class="control-group">
+        <select id="camera-select"></select>
+    </div>
+    
+    <div id="reader"></div>
+    <div id="result">相機啟動中，請稍候...</div>
+
     <script>
-        // ★★★ 請確認為您最新的 GAS 部署網址 ★★★
-        const API_URL = "https://script.google.com/macros/s/AKfycbyH418rMg_5uIhg-sjVoqFZfLY-CFGK1RSs8-IbC_z8SlhotkJz0U7W7wKwOVI_vruf/exec"; 
+        // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
+        const API_URL = "https://script.google.com/macros/s/AKfycbxHx7kvh7CM23xoq9HGv75aYjMTJnZUgVXDuuFNSxO9lzYYMp1C2JoZ6VUnzvAvS95S/exec"; 
 
         let isProcessing = false; 
-        let currentMode = "borrow"; 
+        let currentMode = "borrow"; // 預設為 borrow (借用)
         const html5QrCode = new Html5Qrcode("reader");
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
         const cameraSelect = document.getElementById('camera-select');
         const resultDiv = document.getElementById('result');
         const modeToggleBtn = document.getElementById('mode-toggle');
 
-        // 頁面切換控制
-        function switchPage(pageId) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            
-            if (pageId === 'list-page') {
-                loadBorrowedList();
-            }
-        }
-
-        // 模式切換（借用 / 歸還）
+        // 切換模式函數
         function toggleMode() {
             if (currentMode === "borrow") {
                 currentMode = "return";
@@ -117,7 +68,7 @@
             }
         }
 
-        // 掃描成功處理
+        // 掃描成功回呼函數
         async function onScanSuccess(decodedText) {
             if (isProcessing) return; 
             isProcessing = true;
@@ -132,6 +83,7 @@
             resultDiv.innerText = `讀取到編號：${cleanId}\n處理中 (${currentMode === 'borrow' ? '借用' : '歸還'})...`;
             
             try {
+                // 將 id 與 mode 參數一起傳給 GAS
                 const response = await fetch(`${API_URL}?id=${encodeURIComponent(cleanId)}&mode=${currentMode}`);
                 const text = await response.text();
                 
@@ -150,45 +102,6 @@
             }
         }
 
-        // 載入被借出清單
-        async function loadBorrowedList() {
-            const listStatus = document.getElementById('list-status');
-            const table = document.getElementById('borrowed-table');
-            const tbody = document.getElementById('borrowed-list-body');
-            
-            listStatus.style.display = "block";
-            listStatus.innerText = "連線取得資料中...";
-            table.style.display = "none";
-            tbody.innerHTML = "";
-
-            try {
-                const response = await fetch(`${API_URL}?action=getList`);
-                const list = await response.json();
-
-                if (list.length === 0) {
-                    listStatus.innerText = "目前無任何設備被借出。";
-                } else {
-                    listStatus.style.display = "none";
-                    table.style.display = "table";
-                    
-                    list.forEach(item => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${item.id}</td>
-                            <td>${item.brand || '-'}</td>
-                            <td>${item.name || '-'}</td>
-                            <td><span class="badge-borrowed">${item.status}</span></td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
-            } catch (error) {
-                console.error("無法取得借出清單:", error);
-                listStatus.innerText = "讀取清單失敗，請稍後重試。";
-            }
-        }
-
-        // 相機初始化
         function startCamera(cameraId) {
             html5QrCode.start(cameraId, config, onScanSuccess)
                 .then(() => { resultDiv.innerText = "請對準 QR Code 進行掃描..."; })
@@ -198,7 +111,7 @@
                 });
         }
 
-        Html5Qrcode.getCameras().then(devices => {
+         Html5Qrcode.getCameras().then(devices => {
             if (devices && devices.length > 0) {
                 devices.forEach((device, index) => {
                     const option = document.createElement('option');
