@@ -13,30 +13,27 @@
         .control-group { margin-bottom: 12px; }
         select, .btn { padding: 10px; font-size: 16px; border-radius: 6px; width: 100%; max-width: 320px; box-sizing: border-box; border: 1px solid #ccc; }
         
-        /* 模式切換按鈕 */
         #mode-toggle { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
         #mode-toggle.return-mode { background-color: #28a745; }
         
-        /* 清單頁面跳轉按鈕 */
         .btn-list { background-color: #6c757d; color: white; text-decoration: none; display: inline-block; font-weight: bold; }
         .btn-logout { background-color: #dc3545; color: white; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; }
+        #user-greeting { font-size: 15px; color: #555; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>📷 設備掃描借還系統</h2>
+        <div id="user-greeting">使用者載入中...</div>
         
-        <!-- 模式切換按鈕 -->
         <div class="control-group">
             <button id="mode-toggle" class="btn" onclick="toggleMode()">目前模式：借用設備</button>
         </div>
 
-        <!-- 查看已借用清單按鈕 -->
         <div class="control-group">
             <a href="list.html" class="btn btn-list">📋 檢視已借用設備清單</a>
         </div>
 
-        <!-- 鏡頭選擇下拉選單 -->
         <div class="control-group">
             <select id="camera-select"></select>
         </div>
@@ -44,15 +41,22 @@
         <div id="reader"></div>
         <div id="result">相機啟動中，請稍候...</div>
 
-        <!-- 登出按鈕 -->
         <div class="control-group">
-            <a href="index.html" class="btn btn-logout">🚪 登出返回首頁</a>
+            <a href="index.html" class="btn btn-logout" onclick="localStorage.removeItem('userName')">🚪 登出返回首頁</a>
         </div>
     </div>
 
     <script>
         // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
-        const API_URL = "https://script.google.com/macros/s/AKfycbzAortQhYFPFvBolFPch-EMZ2zHm1MZM3Uhmm2ya5gMGle-aD-BU1Sa9K7qjPG2Qe17/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycby2M25bkNq_sF1gN1Ct8YLRQcwCHEGyO0IOrtxKWDfNFmXm-FkxtpKjZfHTE6a7T55J/exec"; 
+
+        const loggedInUser = localStorage.getItem('userName');
+        if (!loggedInUser) {
+            alert("尚未登入，請先登入系統！");
+            window.location.href = "index.html";
+        } else {
+            document.getElementById('user-greeting').innerText = `👤 目前登入使用者：${loggedInUser}`;
+        }
 
         let isProcessing = false; 
         let currentMode = "borrow"; 
@@ -88,7 +92,7 @@
             resultDiv.innerText = `讀取到編號：${cleanId}\n處理中 (${currentMode === 'borrow' ? '借用' : '歸還'})...`;
             
             try {
-                const response = await fetch(`${API_URL}?id=${encodeURIComponent(cleanId)}&mode=${currentMode}`);
+                const response = await fetch(`${API_URL}?id=${encodeURIComponent(cleanId)}&mode=${currentMode}&user=${encodeURIComponent(loggedInUser)}`);
                 const text = await response.text();
                 
                 resultDiv.style.color = text.includes("成功") ? "green" : "red";
