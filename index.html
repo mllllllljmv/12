@@ -32,7 +32,7 @@
 
     <script>
         // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
-        const API_URL = "https://script.google.com/macros/s/AKfycbzAortQhYFPFvBolFPch-EMZ2zHm1MZM3Uhmm2ya5gMGle-aD-BU1Sa9K7qjPG2Qe17/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycby2M25bkNq_sF1gN1Ct8YLRQcwCHEGyO0IOrtxKWDfNFmXm-FkxtpKjZfHTE6a7T55J/exec"; 
 
         async function handleLogin() {
             const userId = document.getElementById('userId').value.trim();
@@ -54,7 +54,9 @@
                 if (result.success) {
                     msgDiv.style.color = "green";
                     msgDiv.innerText = `歡迎回來，${result.name}！正在跳轉...`;
-                    // 登入成功後跳轉到 scan.html 借還設備介面
+                    
+                    localStorage.setItem('userName', result.name);
+
                     setTimeout(() => {
                         window.location.href = "scan.html";
                     }, 1000);
