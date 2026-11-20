@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設備借還歷史記錄</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; margin: 0; }
+        .container { max-width: 960px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow-x: auto; }
+
+        .btn { padding: 10px 15px; font-size: 16px; border-radius: 6px; width: 100%; max-width: 320px; box-sizing: border-box; cursor: pointer; border: none; font-weight: bold; margin-bottom: 12px; display: inline-block; }
+        .btn-back { background-color: #6c757d; color: white; text-decoration: none; text-align: center; }
+        .btn-refresh { background-color: #17a2b8; color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; white-space: nowrap; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        #status { font-weight: bold; color: #555; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🕒 設備借還歷史記錄</h2>
+
+        <a href="scan.html" class="btn btn-back">⬅️ 返回掃描介面</a>
+        <br>
+        <button class="btn btn-refresh" onclick="loadHistory()">🔄 重新整理記錄</button>
+
+        <div id="status">讀取歷史記錄中...</div>
+        <table id="history-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>log_id</th>
+                    <th>equipment_id</th>
+                    <th>equipment_name</th>
+                    <th>user_id</th>
+                    <th>user_name</th>
+                    <th>borrow_time</th>
+                    <th>return_time</th>
+                </tr>
+            </thead>
+            <tbody id="history-list-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
+        const API_URL = "https://script.google.com/macros/s/AKfycbz4XphIDrFqFmwthCAww4YlSAdLprao5UP_ZkesNqJODP_GzsVAi1uQiBlTOrTm_0L7/exec";
+
+        async function loadHistory() {
+            const statusDiv = document.getElementById('status');
+            const table = document.getElementById('history-table');
+            const tbody = document.getElementById('history-list-body');
+
+            statusDiv.style.display = "block";
+            statusDiv.innerText = "讀取歷史記錄中，請稍候...";
+            table.style.display = "none";
+            tbody.innerHTML = "";
+
+            try {
+                const response = await fetch(`${API_URL}?action=getHistory`);
+                const list = await response.json();
+
+                if (!list || list.length === 0) {
+                    statusDiv.innerText = "目前沒有任何借還歷史記錄。";
+                } else {
+                    statusDiv.style.display = "none";
+                    table.style.display = "table";
+
+                    list.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.logId || '-'}</td>
+                            <td>${item.equipmentId || '-'}</td>
+                            <td>${item.equipmentName || '-'}</td>
+                            <td>${item.userId || '-'}</td>
+                            <td><strong>${item.userName || '-'}</strong></td>
+                            <td>${item.borrowTime || '-'}</td>
+                            <td>${item.returnTime || '尚未歸還'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error("無法取得歷史記錄:", error);
+                statusDiv.innerText = "無法讀取歷史記錄！請確認 GAS 部署與分頁名稱。";
+            }
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>
