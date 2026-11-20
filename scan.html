@@ -17,6 +17,7 @@
         #mode-toggle.return-mode { background-color: #28a745; }
 
         .btn-list { background-color: #6c757d; color: white; text-decoration: none; display: inline-block; font-weight: bold; }
+        .btn-history { background-color: #17a2b8; color: white; text-decoration: none; display: inline-block; font-weight: bold; }
         .btn-logout { background-color: #dc3545; color: white; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px; }
         #user-greeting { font-size: 15px; color: #555; margin-bottom: 15px; font-weight: bold; }
     </style>
@@ -35,6 +36,10 @@
         </div>
 
         <div class="control-group">
+            <a href="history.html" class="btn btn-history">🕒 檢視歷史記錄表</a>
+        </div>
+
+        <div class="control-group">
             <select id="camera-select"></select>
         </div>
 
@@ -42,20 +47,21 @@
         <div id="result">相機啟動中，請稍候...</div>
 
         <div class="control-group">
-            <a href="index.html" class="btn btn-logout" onclick="localStorage.removeItem('userName')">🚪 登出返回首頁</a>
+            <a href="index.html" class="btn btn-logout" onclick="localStorage.removeItem('userName'); localStorage.removeItem('userId');">🚪 登出返回首頁</a>
         </div>
     </div>
 
     <script>
         // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
-        const API_URL = "https://script.google.com/macros/s/AKfycby7T4u-tnOtvwEn3uOvD-aYCoEXzi_n2-gPGP5w4Zox8M1FbIrmFRmg2o1oASekc0Uw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbz4XphIDrFqFmwthCAww4YlSAdLprao5UP_ZkesNqJODP_GzsVAi1uQiBlTOrTm_0L7/exec";
 
         const loggedInUser = localStorage.getItem('userName');
+        const loggedInUserId = localStorage.getItem('userId') || "";
         if (!loggedInUser) {
             alert("尚未登入，請先登入系統！");
             window.location.href = "index.html";
         } else {
-            document.getElementById('user-greeting').innerText = `👤 目前登入使用者：${loggedInUser}`;
+            document.getElementById('user-greeting').innerText = `👤 目前登入使用者：${loggedInUser} (${loggedInUserId})`;
         }
 
         let isProcessing = false;
@@ -93,7 +99,7 @@
 
             try {
                 const response = await fetch(
-                    `${API_URL}?id=${encodeURIComponent(cleanId)}&mode=${currentMode}&user=${encodeURIComponent(loggedInUser)}`
+                    `${API_URL}?id=${encodeURIComponent(cleanId)}&mode=${currentMode}&userId=${encodeURIComponent(loggedInUserId)}&user=${encodeURIComponent(loggedInUser)}`
                 );
                 const text = await response.text();
 
