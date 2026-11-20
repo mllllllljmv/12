@@ -32,7 +32,7 @@
 
     <script>
         // ★★★ 請替換成您的 GAS 網頁應用程式網址 ★★★
-        const API_URL = "https://script.google.com/macros/s/AKfycby2M25bkNq_sF1gN1Ct8YLRQcwCHEGyO0IOrtxKWDfNFmXm-FkxtpKjZfHTE6a7T55J/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycby7T4u-tnOtvwEn3uOvD-aYCoEXzi_n2-gPGP5w4Zox8M1FbIrmFRmg2o1oASekc0Uw/exec";
 
         async function handleLogin() {
             const userId = document.getElementById('userId').value.trim();
@@ -54,7 +54,6 @@
                 if (result.success) {
                     msgDiv.style.color = "green";
                     msgDiv.innerText = `歡迎回來，${result.name}！正在跳轉...`;
-                    
                     localStorage.setItem('userName', result.name);
 
                     setTimeout(() => {
